@@ -1,36 +1,94 @@
+// import { GetPlaceDetails, PHOTO_REF_URL } from '@/service/GlobalApi';
+// import React, { useEffect, useState } from 'react'
+// import { Link } from 'react-router-dom';
+
+// function UserTripCardItem({trip}) {
+//     const [photoUrl,setPhotoUrl]=useState();
+
+//     useEffect(()=>{
+//         trip&&GetPlacePhoto();
+//     },[trip])
+
+//     const GetPlacePhoto=async()=>{
+//         const data={
+//             textQuery: trip?.userSelection?.location?.label,
+//         }
+//         const result=await GetPlaceDetails(data).then(resp=>{
+
+//             const PhotoUrl = PHOTO_REF_URL.replace('{NAME}',resp.data.places[0].photos[3].name)
+//             setPhotoUrl(PhotoUrl);
+
+//         })
+//     }
+//   return (
+//     <Link to={'/view-trip/'+trip?.id}>
+//     <div>
+//         <img src={photoUrl?photoUrl: '/placeholder.jpeg'} className='object-cover rounded-xl h-[250px] w-full '/>
+//         <div className='hover:scale-105 transition-all '>
+//             <h2 className='font-bold text-lg'>{trip?.userSelection?.location?.label} </h2>
+//             <h2 className='text-sm teaxt-gray-500'> {trip?.userSelection?.noOfDays} Days trip {trip?.userSelection?.budget} with Budget</h2>
+//         </div>
+//     </div>
+//     </Link>
+//   )
+// }
+
+// export default UserTripCardItem
 import { GetPlaceDetails, PHOTO_REF_URL } from '@/service/GlobalApi';
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 
-function UserTripCardItem({trip}) {
-    const [photoUrl,setPhotoUrl]=useState();
+function UserTripCardItem({ trip }) {
+  const [photoUrl, setPhotoUrl] = useState();
+  const [hover, setHover] = useState(false);
 
-    useEffect(()=>{
-        trip&&GetPlacePhoto();
-    },[trip])
+  useEffect(() => {
+    trip && GetPlacePhoto();
+  }, [trip]);
 
-    const GetPlacePhoto=async()=>{
-        const data={
-            textQuery: trip?.userSelection?.location?.label,
-        }
-        const result=await GetPlaceDetails(data).then(resp=>{
+  const GetPlacePhoto = async () => {
+    const data = {
+      textQuery: trip?.userSelection?.location?.label,
+    };
+    const result = await GetPlaceDetails(data).then((resp) => {
+      const PhotoUrl = PHOTO_REF_URL.replace('{NAME}', resp.data.places[0].photos[3].name);
+      setPhotoUrl(PhotoUrl);
+    });
+  };
 
-            const PhotoUrl = PHOTO_REF_URL.replace('{NAME}',resp.data.places[0].photos[3].name)
-            setPhotoUrl(PhotoUrl);
-
-        })
-    }
   return (
-    <Link to={'/view-trip/'+trip?.id}>
-    <div>
-        <img src={photoUrl?photoUrl: '/placeholder.jpeg'} className='object-cover rounded-xl h-[250px] w-full '/>
-        <div className='hover:scale-105 transition-all '>
-            <h2 className='font-bold text-lg'>{trip?.userSelection?.location?.label} </h2>
-            <h2 className='text-sm teaxt-gray-500'> {trip?.userSelection?.noOfDays} Days trip {trip?.userSelection?.budget} with Budget</h2>
+    <Link to={'/view-trip/' + trip?.id}>
+      <div
+        className={`relative overflow-hidden rounded-xl h-[250px] w-full ${
+          hover ? 'shadow-lg' : ''
+        }`}
+        onMouseEnter={() => setHover(true)}
+        onMouseLeave={() => setHover(false)}
+      >
+        <img
+          src={photoUrl ? photoUrl : '/placeholder.jpeg'}
+          className={`object-cover rounded-xl h-[250px] w-full transition-all ${
+            hover ? 'scale-105' : ''
+          }`}
+        />
+        <div
+          className={`absolute bottom-0 left-0 p-4 text-white ${
+            hover ? 'bg-black bg-opacity-50' : 'bg-transparent'
+          } transition-all`}
+        >
+          <h2 className="font-bold text-lg">{trip?.userSelection?.location?.label}</h2>
+          <h2 className="text-sm text-gray-500">
+            {trip?.userSelection?.noOfDays} Days trip {trip?.userSelection?.budget} with Budget
+          </h2>
         </div>
-    </div>
+        <div
+          className={`absolute top-0 left-0 w-full h-full ${
+            hover ? 'bg-gradient-to-r from-transparent to-black' : 'bg-transparent'
+          } transition-all`}
+        />
+      </div>
     </Link>
-  )
+  );
 }
 
-export default UserTripCardItem
+export default UserTripCardItem;

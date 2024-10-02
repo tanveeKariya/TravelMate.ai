@@ -1,8 +1,8 @@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { SelectBudgetOptions, SelectTravelesList } from '@/constants/options';
-import React, { useEffect, useState } from 'react'
-import GooglePlacesAutocomplete from 'react-google-places-autocomplete'
+import React, { useEffect, useState } from 'react';
+import GooglePlacesAutocomplete from 'react-google-places-autocomplete';
 import { toast } from 'sonner';
 import { AI_PROMPT } from "../constants/options"; 
 import { chatSession } from '@/service/AIModel';
@@ -13,7 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog"
+} from "@/components/ui/dialog";
 import { FcGoogle } from "react-icons/fc";
 import { useGoogleLogin } from '@react-oauth/google';
 import axios from 'axios';
@@ -21,162 +21,164 @@ import { doc, setDoc } from 'firebase/firestore';
 import { db } from '@/service/firebaseConfig';
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { useNavigate } from 'react-router-dom';
-
-
+import { motion } from 'framer-motion'; // Importing framer-motion
 
 function Createtrip() {
-  const[place,setPlace]=useState();
+  const [place, setPlace] = useState();
+  const [formData, setFormData] = useState([]);
+  const [openDialog, setOpenDialog] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
-  const [formData,setFormData]=useState([]);
-
-  const [openDialog,setOpenDialog]=useState(false);
-
-  const [loading,setLoading]=useState(false)
-
-  const navigate=useNavigate();
-
-  const handleInputChange = (name,value)=>{
-
-    
+  const handleInputChange = (name, value) => {
     setFormData({
       ...formData,
-      [name]:value
+      [name]: value
     });
   };
 
-  useEffect(()=>{
+  useEffect(() => {
     console.log(formData);
-  },[formData]);
+  }, [formData]);
 
-  const login=useGoogleLogin({
-    onSuccess:(codeResp)=>GetUserProfile(codeResp),
-    onError:(error)=>console.log(error)
-  })
+  const login = useGoogleLogin({
+    onSuccess: (codeResp) => GetUserProfile(codeResp),
+    onError: (error) => console.log(error)
+  });
 
-  const onGenerateTrip=async()=>{
-  
-    const user=localStorage.getItem('user');
-    if(!user){
-      setOpenDialog(true)
+  const onGenerateTrip = async () => {
+    const user = localStorage.getItem('user');
+    if (!user) {
+      setOpenDialog(true);
       return;
     }
 
-    if((formData?.noOfDays>15 && !formData?.location) || !formData?.budget || !formData?.traveler)
-      {
-        toast ("Please fill all details")
-        return;
-      }
+    if ((formData?.noOfDays > 15 && !formData?.location) || !formData?.budget || !formData?.traveler) {
+      toast("Please fill all details");
+      return;
+    }
 
-      setLoading(true);
-      const FINAL_PROMPT = AI_PROMPT
-        .replace('{location}', formData?.location?.label)
-        .replace('{totalDays}', formData?.noOfDays)
-        .replace('{traveler}', formData?.traveler)
-        .replace('{budget}', formData?.budget)
-        .replace('{totalDays}', formData?.noOfDays);
-      const result=await chatSession.sendMessage(FINAL_PROMPT);
+    setLoading(true);
+    const FINAL_PROMPT = AI_PROMPT
+      .replace('{location}', formData?.location?.label)
+      .replace('{totalDays}', formData?.noOfDays)
+      .replace('{traveler}', formData?.traveler)
+      .replace('{budget}', formData?.budget)
+      .replace('{totalDays}', formData?.noOfDays);
+    const result = await chatSession.sendMessage(FINAL_PROMPT);
 
-      console.log("--",result?.response.text());
-      setLoading(false);
-      SaveAiTrip(result?.response?.text())
+    console.log("--", result?.response.text());
+    setLoading(false);
+    SaveAiTrip(result?.response?.text());
   };
 
-  const SaveAiTrip=async(TripdData)=>{
-    
+  const SaveAiTrip = async (TripdData) => {
     setLoading(true);
     const user = JSON.parse(localStorage.getItem('user'));
-    const docID= Date.now().toString();
+    const docID = Date.now().toString();
     await setDoc(doc(db, "AITrips", docID), {
-      userSelection:formData,
-      tripData:JSON.parse(TripdData),
-      userEmail:user?.email,
-      id:docID
-
+      userSelection: formData,
+      tripData: JSON.parse(TripdData),
+      userEmail: user?.email,
+      id: docID
     });
     setLoading(false);
-    navigate('/view-trip/'+docID)
-  }
+    navigate('/view-trip/' + docID);
+  };
 
-  const GetUserProfile=(tokenInfo)=>{
-    axios.get(`https://www.googleapis.com/oauth2/v1/userinfo?access_token=${tokenInfo?.access_token}`,{
-      headers:{
-        Authorization:`Bearer ${tokenInfo?.access_token}`,
-        Accept:'Application/json',
+  const GetUserProfile = (tokenInfo) => {
+    axios.get(`https://www.googleapis.com/oauth2/v1/userinfo?access_token=${tokenInfo?.access_token}`, {
+      headers: {
+        Authorization: `Bearer ${tokenInfo?.access_token}`,
+        Accept: 'Application/json',
       }
-    }).then((resp)=>{
+    }).then((resp) => {
       console.log(resp);
-      localStorage.setItem('user',JSON.stringify(resp.data));
+      localStorage.setItem('user', JSON.stringify(resp.data));
       setOpenDialog(false);
       onGenerateTrip();
     })
   }
 
   return (
-    <div className='sm:px-10 md:px-32 lg:px-56 xl:px-72 px-5 mt-10'>
+    <motion.div 
+      className='sm:px-10 md:px-32 lg:px-56 xl:px-72 px-5 mt-10'
+      initial={{ opacity: 0, y: 50 }} // Add entrance animation
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+    >
       <h2 className='font-bold text-3xl'>Tells us your Travel Preferences</h2>
       <p className='mt-3 text-gray-500 text-xl'> Just provide some basic information on where do u want to go and we will generate the plan accordingly</p>
-      <div className='mt-20 flex flex-col gap-10'>
-        <div>
+
+      <motion.div className='mt-20 flex flex-col gap-10'>
+        <motion.div initial={{ x: -100, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ duration: 0.4 }}>
           <h2 className='text-xl my-3 font-medium'>What is your destination of choice? </h2>
           <GooglePlacesAutocomplete
             apiKey={import.meta.env.VITE_GOOGLE_PLACE_API_KEY}
             selectProps={{
               place,
-              onChange:(v)=>{setPlace(v);handleInputChange('location',v)}
+              onChange: (v) => { setPlace(v); handleInputChange('location', v); }
             }}
           />
-        </div>
-        <div>
-          <h2 className='text-xl my-3 font-medium'>How many days are you planning your trip? </h2>
-          <Input placeholder={'Ex:3'} type="number"
-            onChange={(e)=>handleInputChange('noOfDays',e.target.value)}
-          />
-        </div>
-      </div>
+        </motion.div>
 
-      <div>
-        <h2 className='text-xl my-3 font-medium'>what is Your Budget?</h2>
+        <motion.div initial={{ x: -100, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ duration: 0.5 }}>
+          <h2 className='text-xl my-3 font-medium'>How many days are you planning your trip? </h2>
+          <Input placeholder={'Ex: 3'} type="number" onChange={(e) => handleInputChange('noOfDays', e.target.value)} />
+        </motion.div>
+      </motion.div>
+
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.6 }}>
+        <h2 className='text-xl my-3 font-medium'>What is Your Budget?</h2>
         <p>The budget is exclusively allocated for activities and dining purposes</p>
         <div className='grid grid-cols-3 gap-5 mt-5'>
-          {SelectBudgetOptions.map((item,index)=>(
-            <div key={index} 
-              onClick={()=>handleInputChange('budget',item.title)}
-              className={`p-4 border cursor-pointer rounded-lg hover:shadow-lg 
-              ${formData?.budget==item.title && 'shadow-lg border-black'}`}>
+          {SelectBudgetOptions.map((item, index) => (
+            <motion.div 
+              key={index} 
+              onClick={() => handleInputChange('budget', item.title)}
+              className={`p-4 border cursor-pointer rounded-lg hover:shadow-lg transition-transform duration-300 ease-in-out transform hover:scale-105
+              ${formData?.budget == item.title && 'shadow-lg border-black'}`}
+              whileHover={{ scale: 1.1 }} // Add hover animation
+            >
               <h2 className='text-4xl'>{item.icon}</h2>
               <h2 className='font-bold text-lg'>{item.title}</h2>
               <h2 className='text-sm text-gray-500'>{item.desc}</h2>
-            </div>
+            </motion.div>
           ))}
         </div>
-      </div>
-      
-      <div>
+      </motion.div>
+
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.7 }}>
         <h2 className='text-xl my-3 font-medium'>Who do you plan on travelling with on your next adventure?</h2>
         <div className='grid grid-cols-3 gap-5 mt-5'>
-          {SelectTravelesList.map((item,index)=>(
-            <div key={index} 
-            onClick={()=>handleInputChange('traveler',item.people)}
-            className={`p-4 border cursor-pointer rounded-lg hover:shadow-lg
-            ${formData?.traveler==item.people && 'shadow-lg border-black'}`}>
+          {SelectTravelesList.map((item, index) => (
+            <motion.div 
+              key={index} 
+              onClick={() => handleInputChange('traveler', item.people)}
+              className={`p-4 border cursor-pointer rounded-lg hover:shadow-lg transition-transform duration-300 ease-in-out transform hover:scale-105
+              ${formData?.traveler == item.people && 'shadow-lg border-black'}`}
+              whileHover={{ scale: 1.1 }}
+            >
               <h2 className='text-4xl'>{item.icon}</h2>
               <h2 className='font-bold text-lg'>{item.title}</h2>
               <h2 className='text-sm text-gray-500'>{item.desc}</h2>
-            </div>
+            </motion.div>
           ))}
         </div>
-      </div>
-
-      <div className='my-10 justify-end flex'>
+      </motion.div>
+      <motion.div className='my-10 justify-end flex' initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.8 }}>
         <Button 
-        disabled={loading}
-        onClick={onGenerateTrip}>
-        {loading?
-        <AiOutlineLoading3Quarters className='h-7 w-7 animate-spin'/>:'Generate Trip'
-        }
+          disabled={loading}
+          onClick={onGenerateTrip}
+          className="hover:bg-black transition-colors duration-300"
+        >
+          {loading ? (
+            <AiOutlineLoading3Quarters className='h-7 w-7 animate-spin'/>
+          ) : 'Generate Trip'}
         </Button>
-      </div>
-    
+      </motion.div>
+
+      
         
       <Dialog open={openDialog}>
         
@@ -198,7 +200,7 @@ function Createtrip() {
         </DialogContent>
       </Dialog>
 
-    </div>
+      </motion.div>
   )
 }
 
