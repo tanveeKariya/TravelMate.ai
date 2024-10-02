@@ -182,25 +182,18 @@ function Createtrip() {
         
         <DialogContent>
           <DialogHeader>
-          <button onClick={() => {
-        setOpenDialog(false);
-        history.goBack();
-      }}>
-        <DialogClose>×</DialogClose>
-        </button>
             
-          <DialogDescription>
-  <div>
-    <img src="/logo.svg"/>
-    <h2 className='font-bold text-lg mt-7'>Sign In with Google</h2>
-    <p>Sign in to the App with Google Authentication</p>
-  </div>
-  <Button 
-    onClick={login}
-    className="w-full mt-5 flex gap-4 items-center">
-    <FcGoogle className='h-7 w-7'/>Sign In with Google
-  </Button>
-</DialogDescription>
+              <DialogDescription>
+              <img src="/logo.svg"/>
+              <h2 className='font-bold text-lg mt-7'>Sign In with Google</h2>
+              <p>Sign in to the App with Google Authentication</p>
+
+              <Button 
+              onClick={login}
+              className="w-full mt-5 flex gap-4 items-center">
+              <FcGoogle className='h-7 w-7'/>Sign In with Google
+              </Button>
+            </DialogDescription>
           </DialogHeader>
         </DialogContent>
       </Dialog>
